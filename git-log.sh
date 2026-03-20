@@ -6,16 +6,36 @@ rm "$PWD/out/jdt.md" 2>/dev/null
 
 ###
 
+OUTPUT="$PWD/out/jdt.md"
+
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "Erreur : Ce dossier n'est pas un dépôt Git."
+    echo "pas de dossier git"
     exit 1
 fi
 
 
 
-OUTPUT="$PWD/out/jdt.md"
 
-git log --date=format:'%d.%m.%Y' --pretty=format:"- %cd | \`%h\` - %an : %s" >> "$OUTPUT"
+
+
+declare LASTDATE
+
+for hash in $(git rev-list HEAD); do
+    CURRENTDATE=$(git show -s --format=%cd --date=format:'%d.%m.%Y' $hash)
+    MSG=$(git show -s --format=%s $hash)
+    
+    if [ "$CURRENTDATE" != "$LASTDATE" ]; then
+        LASTDATE="$CURRENTDATE"
+        
+        echo "" >> "$OUTPUT"
+        echo "" >> "$OUTPUT"
+        echo "# $CURRENTDATE" >> "$OUTPUT"
+    fi
+    
+    git show -s --format="|  |  | %an | %s |" $hash >> "$OUTPUT"
+    
+done
+
 
 echo "" >> "$OUTPUT"
-echo "succes"
